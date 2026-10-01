@@ -62,6 +62,13 @@ scripts/        upload_assets.py (رفع الموديلات) + install_tools.sh
 4. ضيف رابط الـ GLB لـ `assets/manifest.json` تحت `monsters.<Id>.model_url`.
 5. اعمل push على `main`، والـ workflow بيكمّل الباقي.
 
+## الأيقونة وصورة الغلاف
+معمولين بـ Higgsfield، وروابطهم موجودة بـ `assets/manifest.json` تحت `branding`.
+
+بترفعهم مرة وحدة بإيدك من **Creator Hub ← اللعبة ← Places ← Start Place**:
+- **Icon**: الصورة المربعة.
+- **Thumbnails**: الصورة العريضة 16:9.
+
 ## التطوير المحلي
 ```bash
 rokit install           # بينزّل rojo و selene
