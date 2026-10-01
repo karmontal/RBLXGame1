@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Services = script.Services
+local AdminService = require(Services.AdminService)
 local CodeService = require(Services.CodeService)
 local ConveyorService = require(Services.ConveyorService)
 local DataService = require(Services.DataService)
@@ -21,6 +22,9 @@ notify.Parent = remotes
 local redeemCode = Instance.new("RemoteFunction")
 redeemCode.Name = "RedeemCode"
 redeemCode.Parent = remotes
+local adminCommand = Instance.new("RemoteFunction")
+adminCommand.Name = "AdminCommand"
+adminCommand.Parent = remotes
 remotes.Parent = ReplicatedStorage
 
 local map = WorldBuilder.BuildGround()
@@ -37,6 +41,7 @@ ConveyorService.Start()
 StealService.Start()
 MonetizationService.Start()
 CodeService.Start(redeemCode)
+AdminService.Start(adminCommand)
 
 local function teleportHome(player: Player, character: Model)
 	local spawnCFrame = PlotService.SpawnCFrame(player)
@@ -60,6 +65,7 @@ local function onPlayerAdded(player: Player)
 	task.spawn(function()
 		MonetizationService.LoadPasses(player)
 		CodeService.LoadPlayer(player)
+		AdminService.LoadPlayer(player)
 	end)
 	player.CharacterAdded:Connect(function(character)
 		teleportHome(player, character)

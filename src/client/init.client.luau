@@ -24,6 +24,7 @@ gui.Parent = player:WaitForChild("PlayerGui")
 
 require(script.Shop).Mount(gui)
 require(script.Codes).Mount(gui)
+require(script.AdminPanel).Mount(gui)
 
 local panel = Instance.new("Frame")
 panel.AnchorPoint = Vector2.new(0, 1)
@@ -164,3 +165,23 @@ RunService.RenderStepped:Connect(function()
 		highlight.OutlineColor = color
 	end
 end)
+
+-- Chat tags ------------------------------------------------------------------
+
+local TextChatService = game:GetService("TextChatService")
+
+local ROLE_TAGS = {
+	Owner = "<font color='#FFD24A'>[OWNER]</font> ",
+	Admin = "<font color='#FF5A6E'>[ADMIN]</font> ",
+}
+
+TextChatService.OnIncomingMessage = function(message: TextChatMessage)
+	local properties = Instance.new("TextChatMessageProperties")
+	local source = message.TextSource
+	local sender = source and Players:GetPlayerByUserId(source.UserId)
+	local tag = sender and ROLE_TAGS[sender:GetAttribute("Role") :: string]
+	if tag then
+		properties.PrefixText = tag .. message.PrefixText
+	end
+	return properties
+end

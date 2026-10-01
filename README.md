@@ -105,6 +105,30 @@ scripts/        upload_assets.py (رفع الموديلات) + install_tools.sh
 - **الميزة المؤقتة:** بتخلص لحالها، وبتطلع للاعب رسالة "اشتريها للأبد من المتجر". إذا اللاعب اشترى الـ Pass الحقيقي، الميزة ما بتنشال عنه أبدًا.
 - **إضافة كود جديد:** ضيف سطر بـ `Codes.luau` واعمل push على `main`، وبينتشر لحاله.
 
+## الأدمن (Owner / Admin)
+- **Owner:** صاحب اللعبة، أو رتبة 255 إذا اللعبة لقروب. بيتعرّف عليه لحاله.
+- **Admin:** الـ Owner بيعطي الصلاحية بـ `:admin <اسم>` وبيشيلها بـ `:unadmin <اسم أو UserId>`. القائمة بتنحفظ بـ DataStore، وبتشتغل على كل السيرفرات خلال دقيقة.
+- **مزايا الأدمن:** بياخذ كل ميزات الـ Game Passes مجانًا، وبيطلع جنب اسمه بالشات `[OWNER]` أو `[ADMIN]`.
+- **لوحة الأوامر:** زر **🛡️ ADMIN** بيفتحها، وما بيظهر إلا لصاحب الصلاحية. السيرفر بيتحقق من الصلاحية مع كل أمر، والأسهم ↑↓ بترجّع الأوامر اللي قبل.
+
+| الأمر | شو بيعمل |
+|---|---|
+| `:help` | قائمة الأوامر |
+| `:admin <player>` / `:unadmin <player>` / `:admins` | إدارة الأدمنز (الأول والثاني للـ Owner بس) |
+| `:givecash <player\|all> <amount>` | يعطي فلوس |
+| `:givepass <player\|all> <pass> [hours]` | يعطي ميزة Pass للأبد أو لعدد ساعات |
+| `:removepass <player> <pass>` | يشيل ميزة مجانية (المشترى ما بينشال) |
+| `:givemonster <player> <monster> [mutation]` | يحط وحش بقاعدة اللاعب |
+| `:luckyegg <player\|all> [count]` | يفقس Lucky Eggs |
+| `:spawn <monster> [mutation]` | ينزّل وحش على السير |
+| `:announce <message>` | رسالة لكل السيرفر |
+| `:unlock <player>` | يفك قفل القاعدة |
+| `:speed <player> <n>` | السرعة لحد الـ respawn |
+| `:tp <player>` / `:bring <player\|all>` | انتقال أو جلب لاعبين |
+| `:kick <player> [reason]` | طرد (الأدمن ما بيقدر يطرد أدمن ثاني) |
+
+`<player>` بيقبل جزء من الاسم، أو `me` أو `all` أو `others`.
+
 ## الأيقونة وصورة الغلاف
 معمولين بـ Higgsfield، وروابطهم موجودة بـ `assets/manifest.json` تحت `branding`.
 

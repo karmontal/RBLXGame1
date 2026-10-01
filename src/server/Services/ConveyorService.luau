@@ -84,9 +84,9 @@ local function onBuy(item: BeltItem, player: Player)
 	despawn(item)
 end
 
-local function spawnItem()
-	local monsterId = rollMonster()
-	local mutation = Mutations.Roll(rng)
+local function spawnItem(forcedId: string?, forcedMutation: string?)
+	local monsterId = forcedId or rollMonster()
+	local mutation = if forcedMutation then Mutations.ByName[forcedMutation] or Mutations.None else Mutations.Roll(rng)
 	local price = MonsterModels.PriceOf(monsterId, mutation.Name)
 	local model = MonsterModels.Build(monsterId, mutation.Name, { Price = price })
 
@@ -120,6 +120,11 @@ local function spawnItem()
 			PlotService.Notify(player, "A " .. rarity.Name .. " " .. monsterId .. " appeared on the belt!", "rare")
 		end
 	end
+end
+
+-- Puts a specific monster on the belt (admin command).
+function ConveyorService.Spawn(monsterId: string, mutationName: string?)
+	spawnItem(monsterId, mutationName)
 end
 
 function ConveyorService.Init(startPos: Vector3, endPos: Vector3)
