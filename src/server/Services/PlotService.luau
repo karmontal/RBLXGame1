@@ -2,6 +2,7 @@
 -- Player bases: plot assignment, monster slots, cash, passive income,
 -- collecting, the base lock, selling and rebirths.
 
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -32,6 +33,7 @@ export type Plot = {
 	LockLabel: TextLabel,
 	PendingLabel: TextLabel,
 	RebirthLabel: TextLabel,
+	GateLowered: boolean,
 }
 
 local PlotService = {}
@@ -59,6 +61,27 @@ local function billboardLabel(parent: BasePart, offset: Vector3, color: Color3):
 	label.TextStrokeTransparency = 0.1
 	label.Parent = gui
 	return label
+end
+
+-- Slides the room's iron portcullis down (locked) or up (open) over ~0.6s.
+local function setGate(plot: Plot, lowered: boolean)
+	if plot.GateLowered == lowered then
+		return
+	end
+	plot.GateLowered = lowered
+	local gate = plot.Parts.Gate
+	local from = gate:GetPivot()
+	local to = if lowered then plot.Parts.GateDown else plot.Parts.GateUp
+	task.spawn(function()
+		local steps = 15
+		for i = 1, steps do
+			if plot.GateLowered ~= lowered then
+				return -- reversed mid-way; the newer call takes over
+			end
+			gate:PivotTo(from:Lerp(to, i / steps))
+			task.wait(0.04)
+		end
+	end)
 end
 
 -- Sends a localized toast: the client renders Locale key + args in its language.
@@ -208,6 +231,31 @@ local function renderSlot(plot: Plot, slotIndex: number)
 	addSlotPrompts(plot, slotIndex, model)
 end
 
+-- Marks a monster variant as discovered for the index and mirrors the whole
+-- index to the client as a JSON player attribute.
+local function syncDiscovered(player: Player)
+	local profile = DataService.Get(player)
+	if profile then
+		player:SetAttribute("Discovered", HttpService:JSONEncode(profile.Discovered))
+	end
+end
+
+local function discover(player: Player, monster: OwnedMonster)
+	local profile = DataService.Get(player)
+	if not profile then
+		return
+	end
+	local variants = profile.Discovered[monster.Id]
+	if not variants then
+		variants = {}
+		profile.Discovered[monster.Id] = variants
+	end
+	if not variants[monster.Mutation] then
+		variants[monster.Mutation] = true
+		syncDiscovered(player)
+	end
+end
+
 -- Places a monster in the player's first free slot. Returns false if full.
 function PlotService.AddMonster(player: Player, monster: OwnedMonster): boolean
 	local plot = plotOf[player]
@@ -223,6 +271,7 @@ function PlotService.AddMonster(player: Player, monster: OwnedMonster): boolean
 	profile.Slots[tostring(index)] = monster
 	renderSlot(plot, index)
 	refreshStats(player)
+	discover(player, monster)
 	return true
 end
 
@@ -301,6 +350,10 @@ function PlotService.Assign(player: Player): Plot?
 		local index = tonumber(key)
 		if index and assigned.Slots[index] then
 			assigned.Slots[index].Data = monster
+			-- Older saves predate the index: count what they already own.
+			local variants = profile.Discovered[monster.Id] or {}
+			variants[monster.Mutation] = true
+			profile.Discovered[monster.Id] = variants
 		else
 			profile.Slots[key] = nil
 		end
@@ -308,6 +361,7 @@ function PlotService.Assign(player: Player): Plot?
 	for index in assigned.Slots do
 		renderSlot(assigned, index)
 	end
+	syncDiscovered(player)
 	refreshStats(player)
 	return assigned
 end
@@ -323,7 +377,7 @@ function PlotService.Unassign(player: Player)
 	Loc.Label(plot.Parts.Sign, "label.emptyBase")
 	Loc.Clear(plot.PendingLabel)
 	Loc.Clear(plot.LockLabel)
-	plot.Parts.Barrier.Transparency = 1
+	setGate(plot, false)
 	setOwnerPrompts(plot, 0)
 	for index, slot in plot.Slots do
 		slot.Data = nil
@@ -421,7 +475,7 @@ end
 -- Pushes non-owners out of locked bases.
 local function enforceLock(plot: Plot)
 	local locked = PlotService.IsLocked(plot)
-	plot.Parts.Barrier.Transparency = if locked then 0.35 else 1
+	setGate(plot, locked)
 	local now = os.clock()
 	if locked then
 		Loc.Label(plot.LockLabel, "label.lockActive", { seconds = math.ceil(plot.LockedUntil - now) })
@@ -458,6 +512,7 @@ function PlotService.Init(plotParts: { PlotParts }, notify: RemoteEvent)
 			Slots = slots,
 			LockedUntil = 0,
 			LockReadyAt = 0,
+			GateLowered = false,
 			LockLabel = billboardLabel(parts.LockButton, Vector3.new(0, 3, 0), Color3.fromRGB(255, 120, 120)),
 			PendingLabel = billboardLabel(parts.CollectPad, Vector3.new(0, 3, 0), Color3.fromRGB(120, 255, 140)),
 			RebirthLabel = billboardLabel(parts.RebirthPillar, Vector3.new(0, 5, 0), Color3.fromRGB(255, 220, 80)),

@@ -100,6 +100,7 @@ refreshLangButton()
 langButton.Activated:Connect(function()
 	Lang.Set(if Lang.IsArabic() then "en" else "ar")
 end)
+require(script.MonsterIndex).Mount(gui)
 
 local carryLabel = Ui.Label(gui, {
 	AnchorPoint = Vector2.new(0.5, 0),

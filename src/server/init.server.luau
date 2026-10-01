@@ -9,7 +9,9 @@ local AdminService = require(Services.AdminService)
 local CodeService = require(Services.CodeService)
 local ConveyorService = require(Services.ConveyorService)
 local DataService = require(Services.DataService)
+local LeaderboardService = require(Services.LeaderboardService)
 local MonetizationService = require(Services.MonetizationService)
+local MonsterModels = require(Services.MonsterModels)
 local PlotService = require(Services.PlotService)
 local StealService = require(Services.StealService)
 local WorldBuilder = require(Services.WorldBuilder)
@@ -31,12 +33,12 @@ setLanguage.Parent = remotes
 remotes.Parent = ReplicatedStorage
 
 local map = WorldBuilder.BuildGround()
-local beltStart, beltEnd = WorldBuilder.BuildConveyor(map)
+local beltPath = WorldBuilder.BuildConveyor(map)
 local plotParts = WorldBuilder.BuildPlots(map)
 
 DataService.Init()
 PlotService.Init(plotParts, notify)
-ConveyorService.Init(beltStart, beltEnd)
+ConveyorService.Init(beltPath)
 
 DataService.Start()
 PlotService.Start()
@@ -45,6 +47,8 @@ StealService.Start()
 MonetizationService.Start()
 CodeService.Start(redeemCode)
 AdminService.Start(adminCommand)
+LeaderboardService.Start(map)
+task.spawn(MonsterModels.PublishTemplates)
 
 local function teleportHome(player: Player, character: Model)
 	local spawnCFrame = PlotService.SpawnCFrame(player)

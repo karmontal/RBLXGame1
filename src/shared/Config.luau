@@ -7,9 +7,8 @@ local Config = {
 	MaxPlots = 8,
 
 	-- Conveyor
-	ConveyorLength = 240,
-	ConveyorSpeed = 8, -- studs per second
-	SpawnInterval = 3, -- seconds between monsters on the belt
+	ConveyorSpeed = 16, -- studs per second along the winding belt (~95s trip)
+	SpawnInterval = 3.5, -- seconds between monsters on the belt
 	BuyDistance = 14,
 
 	-- Income
