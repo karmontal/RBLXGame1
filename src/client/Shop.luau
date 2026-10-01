@@ -31,35 +31,64 @@ local function text(parent: Instance, props: { [string]: any }): TextLabel
 	return label
 end
 
-local function priceOf(item: Monetization.Item, infoType: Enum.InfoType): string
+-- Shown until (or instead of) the item's Roblox icon loads.
+local FALLBACK_ICONS: { [string]: string } = {
+	DoubleCash = "💰",
+	SuperLock = "🔒",
+	SpeedBoost = "👟",
+	AutoCollect = "🧲",
+	CashSmall = "💵",
+	CashLarge = "💎",
+	LuckyEgg = "🥚",
+}
+
+-- Live price and icon from Roblox (the icon is the one uploaded with the item).
+local function fetchInfo(item: Monetization.Item, infoType: Enum.InfoType): (string, number?)
 	local ok, info = pcall(function()
 		return MarketplaceService:GetProductInfo(item.Id, infoType)
 	end)
-	if ok and info and info.PriceInRobux then
-		return "R$ " .. tostring(info.PriceInRobux)
+	if not ok or not info then
+		return "Buy", nil
 	end
-	return "Buy"
+	local price = if info.PriceInRobux then "R$ " .. tostring(info.PriceInRobux) else "Buy"
+	local iconId = tonumber(info.IconImageAssetId)
+	return price, if iconId and iconId > 0 then iconId else nil
 end
 
 local function makeCard(list: Frame, item: Monetization.Item, isPass: boolean, order: number)
 	local card = Instance.new("Frame")
 	card.LayoutOrder = order
-	card.Size = UDim2.new(1, -8, 0, 78)
+	card.Size = UDim2.new(1, -8, 0, 86)
 	card.BackgroundColor3 = Color3.fromRGB(55, 45, 85)
 	card.Parent = list
 	corner(card, 10)
 
+	local icon = Instance.new("ImageLabel")
+	icon.Name = "Icon"
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.Position = UDim2.new(0, 8, 0.5, 0)
+	icon.Size = UDim2.fromOffset(70, 70)
+	icon.BackgroundColor3 = Color3.fromRGB(80, 65, 120)
+	icon.ScaleType = Enum.ScaleType.Crop
+	icon.Image = ""
+	icon.Parent = card
+	corner(icon, 12)
+	local fallback = text(icon, {
+		Text = FALLBACK_ICONS[item.Key] or "⭐",
+		Size = UDim2.fromScale(1, 1),
+	})
+
 	text(card, {
 		Text = item.Name,
-		Position = UDim2.fromOffset(12, 6),
-		Size = UDim2.new(1, -140, 0, 30),
+		Position = UDim2.fromOffset(88, 8),
+		Size = UDim2.new(1, -218, 0, 30),
 		TextXAlignment = Enum.TextXAlignment.Left,
 	})
 	text(card, {
 		Text = item.Description,
 		Font = Enum.Font.Gotham,
-		Position = UDim2.fromOffset(12, 38),
-		Size = UDim2.new(1, -140, 0, 32),
+		Position = UDim2.fromOffset(88, 42),
+		Size = UDim2.new(1, -218, 0, 34),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextWrapped = true,
 		TextColor3 = Color3.fromRGB(210, 210, 235),
@@ -94,7 +123,11 @@ local function makeCard(list: Frame, item: Monetization.Item, isPass: boolean, o
 	if item.Id ~= 0 then
 		button.Text = "..."
 		task.spawn(function()
-			local price = priceOf(item, if isPass then Enum.InfoType.GamePass else Enum.InfoType.Product)
+			local price, iconId = fetchInfo(item, if isPass then Enum.InfoType.GamePass else Enum.InfoType.Product)
+			if iconId then
+				icon.Image = "rbxassetid://" .. iconId
+				fallback.Visible = false
+			end
 			if not (isPass and player:GetAttribute("Pass_" .. item.Key)) then
 				button.Text = price
 			end
