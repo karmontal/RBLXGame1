@@ -3,6 +3,12 @@
 -- Maps monster id -> Roblox Model asset id.
 
 local AssetIds: { [string]: number } = {
+	Blobby = 130982747921224,
+	Cactopus = 103704048932872,
+	Galaxicat = 105224123799603,
+	Moltenpup = 130783385343476,
+	Mushlet = 87557676124713,
+	Toastling = 107566374493848,
 }
 
 return AssetIds
