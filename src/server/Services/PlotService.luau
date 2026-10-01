@@ -341,6 +341,17 @@ function PlotService.Refresh(player: Player)
 	end
 end
 
+-- Ends a base lock and its cooldown immediately (admin command).
+function PlotService.Unlock(player: Player): boolean
+	local plot = plotOf[player]
+	if not plot then
+		return false
+	end
+	plot.LockedUntil = 0
+	plot.LockReadyAt = 0
+	return true
+end
+
 function PlotService.SpawnCFrame(player: Player): CFrame?
 	local plot = plotOf[player]
 	return plot and plot.Parts.Spawn
