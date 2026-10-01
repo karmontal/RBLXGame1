@@ -24,7 +24,8 @@ jobs:
       - name: Build place
         run: bin/rojo build -o place.rbxl
 
-      - name: Check generated AssetIds is up to date
+      - name: Check generated files are up to date
         run: |
           python3 scripts/upload_assets.py --codegen
-          git diff --exit-code src/shared/AssetIds.luau
+          python3 scripts/setup_store.py --codegen
+          git diff --exit-code src/shared/AssetIds.luau src/shared/Monetization.luau

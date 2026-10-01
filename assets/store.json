@@ -1,0 +1,63 @@
+{
+  "_comment": "Source of truth for the in-game store. scripts/setup_store.py creates missing items on Roblox (Open Cloud), fills in their ids and generates src/shared/Monetization.luau. Edit names/prices here, not in the Luau file.",
+  "game_passes": [
+    {
+      "key": "DoubleCash",
+      "name": "2x Cash",
+      "description": "All your monsters earn double cash, forever.",
+      "price": 199,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_5ec972b5-930b-4e9d-bad3-2abfd22502ef.png",
+      "id": null
+    },
+    {
+      "key": "SuperLock",
+      "name": "Super Lock",
+      "description": "Base lock lasts 2 minutes with only a 15s cooldown.",
+      "price": 149,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_c23b4834-581d-4395-af16-16e0caf1f3d5.png",
+      "id": null
+    },
+    {
+      "key": "SpeedBoost",
+      "name": "Speed Boost",
+      "description": "Run faster, even while carrying a stolen monster.",
+      "price": 99,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_280ad103-3410-408f-b14b-0779b8667db4.png",
+      "id": null
+    },
+    {
+      "key": "AutoCollect",
+      "name": "Auto Collect",
+      "description": "Income goes straight to your cash, no pad needed.",
+      "price": 79,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_e946e08b-9ae9-471d-b5fc-33ae27135d34.png",
+      "id": null
+    }
+  ],
+  "developer_products": [
+    {
+      "key": "CashSmall",
+      "name": "Bag of Cash",
+      "description": "5 minutes of income (at least $5K).",
+      "price": 25,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_3a096dad-c9cb-48b3-b09b-0ca1bc97b6e1.png",
+      "id": null
+    },
+    {
+      "key": "CashLarge",
+      "name": "Chest of Cash",
+      "description": "1 hour of income (at least $100K).",
+      "price": 149,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_3463f7f5-0892-4ad6-b1cc-ac1933cdb02c.png",
+      "id": null
+    },
+    {
+      "key": "LuckyEgg",
+      "name": "Lucky Egg",
+      "description": "Hatch a random Epic or better monster into your base.",
+      "price": 99,
+      "icon_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_27bff590-4109-4c91-ae21-80724a90d628.png",
+      "id": null
+    }
+  ]
+}

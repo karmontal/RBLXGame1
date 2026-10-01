@@ -35,6 +35,7 @@ scripts/        upload_assets.py (رفع الموديلات) + install_tools.sh
 2. اعمل **API Key** من [create.roblox.com/credentials](https://create.roblox.com/credentials) فيه:
    - `universe-places` → **write** على هاي اللعبة.
    - `asset` → **read + write**.
+   - `game-pass` و `developer-product` → **read + write** (للمتجر).
    - بالـ IP: حط `0.0.0.0/0` لأن GitHub Actions ما إله IP ثابت.
 3. بالريبو روح على **Settings → Secrets and variables → Actions** وضيف:
    | Secret | القيمة |
@@ -63,9 +64,9 @@ scripts/        upload_assets.py (رفع الموديلات) + install_tools.sh
 5. اعمل push على `main`، والـ workflow بيكمّل الباقي.
 
 ## Game Passes و Developer Products
-الإعدادات كلها بملف `src/shared/Monetization.luau`. أي عنصر رقمه `0` بيطلع بالمتجر "Soon" وما بينباع.
+مصدر المتجر الوحيد هو ملف `assets/store.json`، وفيه الاسم والوصف والسعر والأيقونة والـ ID. الملف `src/shared/Monetization.luau` بيتولّد منه لحاله، فلا تعدّله بإيدك.
 
-| النوع | المفتاح | الاسم | شو بيعمل | سعر مقترح |
+| النوع | المفتاح | الاسم | شو بيعمل | السعر |
 |---|---|---|---|---|
 | Pass | `DoubleCash` | 2x Cash | دخل مضاعف للأبد | 199 R$ |
 | Pass | `SuperLock` | Super Lock | القفل دقيقتين وانتظار 15 ثانية بس | 149 R$ |
@@ -75,13 +76,17 @@ scripts/        upload_assets.py (رفع الموديلات) + install_tools.sh
 | Product | `CashLarge` | Chest of Cash | دخل ساعة، وأقل شي $100K | 149 R$ |
 | Product | `LuckyEgg` | Lucky Egg | وحش عشوائي من ندرة Epic أو أعلى | 99 R$ |
 
-**طريقة التفعيل:**
-1. من **Creator Hub ← اللعبة ← Monetization ← Passes / Developer Products** اعمل كل عنصر.
-2. حط إله الاسم والسعر، والأيقونة من روابط `branding.shop_icons` بـ `assets/manifest.json`.
-3. انسخ الـ ID تبع كل عنصر وحطه بـ `Id` بملف `Monetization.luau`، أو ابعتلي ياهم وأنا بحطهم.
-4. اعمل push على `main`، واللعبة بتنتشر لحالها.
+**إنشاء العناصر تلقائيًا:** مع كل نشر، `scripts/setup_store.py` بيعمل التالي:
+1. بيدوّر على أي عنصر ما إله `id`.
+2. إذا في عنصر بنفس الاسم على روبلوكس، بياخذ رقمه وما بيعمل نسخة ثانية.
+3. وإذا ما في، بيعمله عن طريق Open Cloud، مع السعر والأيقونة.
+4. بيسجّل الأرقام بالريبو.
 
-المشتريات محمية من التكرار: رقم كل عملية شراء بيتسجل ببيانات اللاعب قبل ما نأكد الشراء لروبلوكس.
+**شرط واحد:** لازم الـ API Key يكون فيه صلاحيات `game-pass` و`developer-product`، الاثنين **read + write**، على اللعبة.
+
+**تعديل سعر أو اسم بعد الإنشاء:** بيصير من Creator Hub. السكربت ما بيعدّل عناصر موجودة.
+
+**الحماية من التكرار:** رقم كل عملية شراء بيتسجل ببيانات اللاعب قبل ما نأكد الشراء لروبلوكس.
 
 ## الأيقونة وصورة الغلاف
 معمولين بـ Higgsfield، وروابطهم موجودة بـ `assets/manifest.json` تحت `branding`.
