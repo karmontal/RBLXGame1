@@ -244,6 +244,29 @@ function MonsterModels.BuildCarry(monsterId: string, mutationName: string): Mode
 	return model
 end
 
+-- Copies of every monster (no labels or effects) in ReplicatedStorage so
+-- clients can render 3D thumbnails in the Monster Index. Yields while meshes load.
+function MonsterModels.PublishTemplates()
+	local folder = Instance.new("Folder")
+	folder.Name = "MonsterTemplates"
+	folder.Parent = ReplicatedStorage
+	for _, monster in Monsters.List do
+		task.spawn(function()
+			local ok, model = pcall(MonsterModels.Build, monster.Id, "None")
+			if not ok then
+				warn("[MonsterModels] Template failed for", monster.Id, model)
+				return
+			end
+			for _, descendant in model:GetDescendants() do
+				if descendant:IsA("BillboardGui") or descendant:IsA("ProximityPrompt") then
+					descendant:Destroy()
+				end
+			end
+			model.Parent = folder
+		end)
+	end
+end
+
 function MonsterModels.IncomeOf(monsterId: string, mutationName: string): number
 	local monster = Monsters.ById[monsterId]
 	if not monster then

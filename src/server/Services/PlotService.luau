@@ -2,6 +2,7 @@
 -- Player bases: plot assignment, monster slots, cash, passive income,
 -- collecting, the base lock, selling and rebirths.
 
+local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -230,6 +231,31 @@ local function renderSlot(plot: Plot, slotIndex: number)
 	addSlotPrompts(plot, slotIndex, model)
 end
 
+-- Marks a monster variant as discovered for the index and mirrors the whole
+-- index to the client as a JSON player attribute.
+local function syncDiscovered(player: Player)
+	local profile = DataService.Get(player)
+	if profile then
+		player:SetAttribute("Discovered", HttpService:JSONEncode(profile.Discovered))
+	end
+end
+
+local function discover(player: Player, monster: OwnedMonster)
+	local profile = DataService.Get(player)
+	if not profile then
+		return
+	end
+	local variants = profile.Discovered[monster.Id]
+	if not variants then
+		variants = {}
+		profile.Discovered[monster.Id] = variants
+	end
+	if not variants[monster.Mutation] then
+		variants[monster.Mutation] = true
+		syncDiscovered(player)
+	end
+end
+
 -- Places a monster in the player's first free slot. Returns false if full.
 function PlotService.AddMonster(player: Player, monster: OwnedMonster): boolean
 	local plot = plotOf[player]
@@ -245,6 +271,7 @@ function PlotService.AddMonster(player: Player, monster: OwnedMonster): boolean
 	profile.Slots[tostring(index)] = monster
 	renderSlot(plot, index)
 	refreshStats(player)
+	discover(player, monster)
 	return true
 end
 
@@ -323,6 +350,10 @@ function PlotService.Assign(player: Player): Plot?
 		local index = tonumber(key)
 		if index and assigned.Slots[index] then
 			assigned.Slots[index].Data = monster
+			-- Older saves predate the index: count what they already own.
+			local variants = profile.Discovered[monster.Id] or {}
+			variants[monster.Mutation] = true
+			profile.Discovered[monster.Id] = variants
 		else
 			profile.Slots[key] = nil
 		end
@@ -330,6 +361,7 @@ function PlotService.Assign(player: Player): Plot?
 	for index in assigned.Slots do
 		renderSlot(assigned, index)
 	end
+	syncDiscovered(player)
 	refreshStats(player)
 	return assigned
 end

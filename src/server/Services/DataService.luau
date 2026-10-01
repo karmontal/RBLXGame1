@@ -28,6 +28,8 @@ export type Profile = {
 	CodePasses: { [string]: number },
 	-- UI language chosen by the player ("en"/"ar"); "" = auto-detect.
 	Language: string,
+	-- Monster index: monster id -> { [mutation] = true } for every variant owned.
+	Discovered: { [string]: { [string]: boolean } },
 }
 
 local SESSION_LOCK_TIMEOUT = 30 * 60
@@ -50,6 +52,7 @@ local function defaultProfile(): Profile
 		RedeemedCodes = {},
 		CodePasses = {},
 		Language = "",
+		Discovered = {},
 	}
 end
 
@@ -63,6 +66,19 @@ local function reconcile(data: any): Profile
 		profile.Cash = tonumber(data.Cash) or profile.Cash
 		profile.PendingCash = tonumber(data.PendingCash) or 0
 		profile.Rebirths = tonumber(data.Rebirths) or 0
+		if type(data.Discovered) == "table" then
+			for monsterId, variants in data.Discovered do
+				if type(monsterId) == "string" and type(variants) == "table" then
+					local clean = {}
+					for mutation, seen in variants do
+						if type(mutation) == "string" and seen == true then
+							clean[mutation] = true
+						end
+					end
+					profile.Discovered[monsterId] = clean
+				end
+			end
+		end
 		if data.Language == "en" or data.Language == "ar" then
 			profile.Language = data.Language
 		end
@@ -111,6 +127,7 @@ local function serialize(profile: Profile, locked: boolean): any
 		RedeemedCodes = profile.RedeemedCodes,
 		CodePasses = profile.CodePasses,
 		Language = profile.Language,
+		Discovered = profile.Discovered,
 		SessionLock = if locked then { JobId = game.JobId, Time = os.time() } else nil,
 	}
 end
