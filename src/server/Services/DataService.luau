@@ -20,6 +20,8 @@ export type Profile = {
 	Rebirths: number,
 	-- Slot index (as string, DataStore-safe) -> monster
 	Slots: { [string]: OwnedMonster },
+	-- Recent Developer Product receipt ids, so a retried receipt is never granted twice.
+	Purchases: { string },
 }
 
 local SESSION_LOCK_TIMEOUT = 30 * 60
@@ -38,6 +40,7 @@ local function defaultProfile(): Profile
 		PendingCash = 0,
 		Rebirths = 0,
 		Slots = {},
+		Purchases = {},
 	}
 end
 
@@ -51,6 +54,13 @@ local function reconcile(data: any): Profile
 		profile.Cash = tonumber(data.Cash) or profile.Cash
 		profile.PendingCash = tonumber(data.PendingCash) or 0
 		profile.Rebirths = tonumber(data.Rebirths) or 0
+		if type(data.Purchases) == "table" then
+			for _, receiptId in data.Purchases do
+				if type(receiptId) == "string" then
+					table.insert(profile.Purchases, receiptId)
+				end
+			end
+		end
 		if type(data.Slots) == "table" then
 			for slot, monster in data.Slots do
 				if type(monster) == "table" and type(monster.Id) == "string" then
@@ -71,6 +81,7 @@ local function serialize(profile: Profile, locked: boolean): any
 		PendingCash = profile.PendingCash,
 		Rebirths = profile.Rebirths,
 		Slots = profile.Slots,
+		Purchases = profile.Purchases,
 		SessionLock = if locked then { JobId = game.JobId, Time = os.time() } else nil,
 	}
 end
@@ -152,23 +163,28 @@ function DataService.Get(player: Player): Profile?
 	return profiles[player]
 end
 
-function DataService.Save(player: Player, release: boolean)
+-- Returns false only when a write was attempted and did not land.
+function DataService.Save(player: Player, release: boolean): boolean
 	local profile = profiles[player]
 	if not profile or not store or readOnly[player] then
-		return
+		return true
 	end
+	local written = false
 	local ok, err = pcall(function()
 		(store :: DataStore):UpdateAsync(keyFor(player), function(old)
 			local lock = type(old) == "table" and old.SessionLock or nil
 			if type(lock) == "table" and lock.JobId ~= game.JobId then
 				return nil -- another server took over; never overwrite it
 			end
+			written = true
 			return serialize(profile, not release)
 		end)
 	end)
 	if not ok then
 		warn("[DataService] Save failed for", player.Name, err)
+		return false
 	end
+	return written
 end
 
 function DataService.Release(player: Player)

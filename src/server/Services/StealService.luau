@@ -46,7 +46,9 @@ local function endCarry(carry: Carry, success: boolean, reason: string?)
 	carry.Thief:SetAttribute("Carrying", nil)
 	local humanoid = humanoidOf(carry.Thief)
 	if humanoid then
-		humanoid.WalkSpeed = carry.PreviousSpeed
+		humanoid.WalkSpeed = if PlotService.HasPass(carry.Thief, "SpeedBoost")
+			then Config.SpeedBoostWalkSpeed
+			else carry.PreviousSpeed
 	end
 
 	local slot = carry.Plot.Slots[carry.SlotIndex]
@@ -129,6 +131,7 @@ local function tryStart(thief: Player, plot: Plot, slotIndex: number)
 	}
 	carries[thief] = carry
 	humanoid.WalkSpeed = Config.CarryWalkSpeed
+		+ (if PlotService.HasPass(thief, "SpeedBoost") then Config.SpeedBoostCarryBonus else 0)
 	thief:SetAttribute("Carrying", data.Id)
 	PlotService.Notify(thief, "Run back to your base!", "info")
 	PlotService.Notify(victim, thief.DisplayName .. " is stealing your " .. data.Id .. "! Catch them!", "error")

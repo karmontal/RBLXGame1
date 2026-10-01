@@ -27,6 +27,19 @@ local Config = {
 	LockDuration = 60,
 	LockCooldown = 30, -- after the lock expires
 
+	-- Game pass perks
+	SuperLockDuration = 120,
+	SuperLockCooldown = 15,
+	SpeedBoostWalkSpeed = 22, -- default Roblox walk speed is 16
+	SpeedBoostCarryBonus = 4,
+
+	-- Developer products
+	CashSmallSeconds = 5 * 60, -- seconds of current income
+	CashSmallMinimum = 5_000,
+	CashLargeSeconds = 60 * 60,
+	CashLargeMinimum = 100_000,
+	LuckyEggMinRarity = 4, -- Rarity.Order: 4 = Epic
+
 	-- Rebirth
 	RebirthBaseCost = 1_000_000,
 	RebirthCostGrowth = 2.5,

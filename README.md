@@ -62,6 +62,27 @@ scripts/        upload_assets.py (رفع الموديلات) + install_tools.sh
 4. ضيف رابط الـ GLB لـ `assets/manifest.json` تحت `monsters.<Id>.model_url`.
 5. اعمل push على `main`، والـ workflow بيكمّل الباقي.
 
+## Game Passes و Developer Products
+الإعدادات كلها بملف `src/shared/Monetization.luau`. أي عنصر رقمه `0` بيطلع بالمتجر "Soon" وما بينباع.
+
+| النوع | المفتاح | الاسم | شو بيعمل | سعر مقترح |
+|---|---|---|---|---|
+| Pass | `DoubleCash` | 2x Cash | دخل مضاعف للأبد | 199 R$ |
+| Pass | `SuperLock` | Super Lock | القفل دقيقتين وانتظار 15 ثانية بس | 149 R$ |
+| Pass | `SpeedBoost` | Speed Boost | سرعة 22 بدل 16، وأسرع وإنت حامل وحش | 99 R$ |
+| Pass | `AutoCollect` | Auto Collect | الدخل بيروح للفلوس مباشرة | 79 R$ |
+| Product | `CashSmall` | Bag of Cash | دخل 5 دقائق، وأقل شي $5K | 25 R$ |
+| Product | `CashLarge` | Chest of Cash | دخل ساعة، وأقل شي $100K | 149 R$ |
+| Product | `LuckyEgg` | Lucky Egg | وحش عشوائي من ندرة Epic أو أعلى | 99 R$ |
+
+**طريقة التفعيل:**
+1. من **Creator Hub ← اللعبة ← Monetization ← Passes / Developer Products** اعمل كل عنصر.
+2. حط إله الاسم والسعر، والأيقونة من روابط `branding.shop_icons` بـ `assets/manifest.json`.
+3. انسخ الـ ID تبع كل عنصر وحطه بـ `Id` بملف `Monetization.luau`، أو ابعتلي ياهم وأنا بحطهم.
+4. اعمل push على `main`، واللعبة بتنتشر لحالها.
+
+المشتريات محمية من التكرار: رقم كل عملية شراء بيتسجل ببيانات اللاعب قبل ما نأكد الشراء لروبلوكس.
+
 ## الأيقونة وصورة الغلاف
 معمولين بـ Higgsfield، وروابطهم موجودة بـ `assets/manifest.json` تحت `branding`.
 

@@ -64,9 +64,19 @@ function PlotService.Notify(player: Player, text: string, kind: string?)
 	notifyRemote:FireClient(player, text, kind or "info")
 end
 
+-- Game pass ownership is mirrored onto the player as "Pass_<Key>" attributes
+-- by MonetizationService.
+function PlotService.HasPass(player: Player, key: string): boolean
+	return player:GetAttribute("Pass_" .. key) == true
+end
+
 function PlotService.IncomeMultiplier(player: Player): number
 	local profile = DataService.Get(player)
-	return 1 + (if profile then profile.Rebirths else 0) * Config.RebirthIncomeBonus
+	local multiplier = 1 + (if profile then profile.Rebirths else 0) * Config.RebirthIncomeBonus
+	if PlotService.HasPass(player, "DoubleCash") then
+		multiplier *= 2
+	end
+	return multiplier
 end
 
 function PlotService.RebirthCost(rebirths: number): number
@@ -319,6 +329,18 @@ function PlotService.Unassign(player: Player)
 	end
 end
 
+-- Re-applies multipliers after a game pass is bought mid-session.
+function PlotService.Refresh(player: Player)
+	local plot = plotOf[player]
+	if not plot then
+		return
+	end
+	refreshStats(player)
+	for index in plot.Slots do
+		renderSlot(plot, index)
+	end
+end
+
 function PlotService.SpawnCFrame(player: Player): CFrame?
 	local plot = plotOf[player]
 	return plot and plot.Parts.Spawn
@@ -348,8 +370,9 @@ local function onLock(plot: Plot, player: Player)
 		PlotService.Notify(player, string.format("Lock ready in %ds", math.ceil(plot.LockReadyAt - now)), "error")
 		return
 	end
-	plot.LockedUntil = now + Config.LockDuration
-	plot.LockReadyAt = plot.LockedUntil + Config.LockCooldown
+	local superLock = PlotService.HasPass(player, "SuperLock")
+	plot.LockedUntil = now + (if superLock then Config.SuperLockDuration else Config.LockDuration)
+	plot.LockReadyAt = plot.LockedUntil + (if superLock then Config.SuperLockCooldown else Config.LockCooldown)
 	PlotService.Notify(player, "Base locked!", "info")
 end
 
@@ -451,7 +474,13 @@ function PlotService.Start()
 				if profile then
 					local income = (player:GetAttribute("Income") :: number?) or 0
 					profile.PendingCash += income * Config.IncomeTick
-					plot.PendingLabel.Text = "Collect " .. Format.Money(profile.PendingCash)
+					if PlotService.HasPass(player, "AutoCollect") then
+						PlotService.AddCash(player, profile.PendingCash)
+						profile.PendingCash = 0
+						plot.PendingLabel.Text = "Auto Collect ✓"
+					else
+						plot.PendingLabel.Text = "Collect " .. Format.Money(profile.PendingCash)
+					end
 				end
 			end
 		end

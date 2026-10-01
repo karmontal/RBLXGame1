@@ -22,6 +22,8 @@ gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
+require(script.Shop).Mount(gui)
+
 local panel = Instance.new("Frame")
 panel.AnchorPoint = Vector2.new(0, 1)
 panel.Position = UDim2.new(0, 16, 1, -16)
