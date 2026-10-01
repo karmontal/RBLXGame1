@@ -1,0 +1,47 @@
+{
+  "_comment": "Higgsfield generations per monster. deploy.yml uploads entries with model_url and no asset_id to Roblox and fills asset_id in.",
+  "monsters": {
+    "Blobby": {
+      "image_job": "026e4b79-12a6-4230-afa0-42aacc5be610",
+      "image_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_145414_026e4b79-12a6-4230-afa0-42aacc5be610.png",
+      "model_job": "a48826ab-d6f5-4368-95ec-6203bcc2d6ba",
+      "model_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_150040_a48826ab-d6f5-4368-95ec-6203bcc2d6ba.glb",
+      "asset_id": null
+    },
+    "Mushlet": {
+      "image_job": "413dd1e2-d390-4ebb-b32b-5446a64e1d67",
+      "image_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_145415_413dd1e2-d390-4ebb-b32b-5446a64e1d67.png",
+      "model_job": "a20878c3-f6a3-4f96-9b89-492c9466abc1",
+      "model_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_150051_a20878c3-f6a3-4f96-9b89-492c9466abc1.glb",
+      "asset_id": null
+    },
+    "Cactopus": {
+      "image_job": "2df84f5d-4559-4316-99c2-e9c22cb5d86b",
+      "image_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_145414_2df84f5d-4559-4316-99c2-e9c22cb5d86b.png",
+      "model_job": "322f420b-4f19-40df-8e7a-25e4df9646d3",
+      "model_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_150055_322f420b-4f19-40df-8e7a-25e4df9646d3.glb",
+      "asset_id": null
+    },
+    "Moltenpup": {
+      "image_job": "09d2782b-a888-439f-99e0-b90faab7dd58",
+      "image_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_145924_09d2782b-a888-439f-99e0-b90faab7dd58.png",
+      "model_job": "57d0fbb1-69d4-45ba-acff-222e7ce8bc13",
+      "model_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_150102_57d0fbb1-69d4-45ba-acff-222e7ce8bc13.glb",
+      "asset_id": null
+    },
+    "Toastling": {
+      "image_job": "3f334ec7-6189-49f2-8e74-a029c287e7bf",
+      "image_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_145924_3f334ec7-6189-49f2-8e74-a029c287e7bf.png",
+      "model_job": "272a288c-66d8-49a2-86b2-aa4aab1794db",
+      "model_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_150440_272a288c-66d8-49a2-86b2-aa4aab1794db.glb",
+      "asset_id": null
+    },
+    "Galaxicat": {
+      "image_job": "83dc4ee3-8368-41d7-952d-61cd7f004eda",
+      "image_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_145414_83dc4ee3-8368-41d7-952d-61cd7f004eda.png",
+      "model_job": "685dbffc-4c64-4846-9689-c134f889d38b",
+      "model_url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_150058_685dbffc-4c64-4846-9689-c134f889d38b.glb",
+      "asset_id": null
+    }
+  }
+}
