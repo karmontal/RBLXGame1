@@ -4,11 +4,18 @@
 
 local AssetIds: { [string]: number } = {
 	Blobby = 130982747921224,
+	Bubblefin = 77496530957507,
 	Cactopus = 103704048932872,
+	Crystalwing = 78323335503334,
+	Fluffnado = 125114142302993,
+	Frostbun = 130767426954761,
 	Galaxicat = 105224123799603,
 	Moltenpup = 130783385343476,
 	Mushlet = 87557676124713,
+	Pebblebug = 128526202882557,
+	Thunderoo = 74229176187735,
 	Toastling = 107566374493848,
+	VoidDuckling = 97474279134761,
 }
 
 return AssetIds
