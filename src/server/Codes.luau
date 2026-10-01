@@ -33,6 +33,8 @@ local Codes: { [string]: Code } = {
 	DOUBLEUP = { Pass = "DoubleCash", PassHours = 1, Expires = untilDate(2026, 12, 31) },
 	-- Limited drop for socials: first 100 players keep Auto Collect forever.
 	MONSTER100 = { Pass = "AutoCollect", MaxRedemptions = 100 },
+	-- Double cash for 1 hour, first 50 players only.
+	MMK50 = { Pass = "DoubleCash", PassHours = 1, MaxRedemptions = 50 },
 }
 
 return Codes
