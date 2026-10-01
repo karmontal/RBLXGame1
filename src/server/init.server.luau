@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Services = script.Services
+local CodeService = require(Services.CodeService)
 local ConveyorService = require(Services.ConveyorService)
 local DataService = require(Services.DataService)
 local MonetizationService = require(Services.MonetizationService)
@@ -17,6 +18,9 @@ remotes.Name = "Remotes"
 local notify = Instance.new("RemoteEvent")
 notify.Name = "Notify"
 notify.Parent = remotes
+local redeemCode = Instance.new("RemoteFunction")
+redeemCode.Name = "RedeemCode"
+redeemCode.Parent = remotes
 remotes.Parent = ReplicatedStorage
 
 local map = WorldBuilder.BuildGround()
@@ -32,6 +36,7 @@ PlotService.Start()
 ConveyorService.Start()
 StealService.Start()
 MonetizationService.Start()
+CodeService.Start(redeemCode)
 
 local function teleportHome(player: Player, character: Model)
 	local spawnCFrame = PlotService.SpawnCFrame(player)
@@ -52,7 +57,10 @@ local function onPlayerAdded(player: Player)
 		player:Kick("This server is full, please join another one.")
 		return
 	end
-	task.spawn(MonetizationService.LoadPasses, player)
+	task.spawn(function()
+		MonetizationService.LoadPasses(player)
+		CodeService.LoadPlayer(player)
+	end)
 	player.CharacterAdded:Connect(function(character)
 		teleportHome(player, character)
 	end)

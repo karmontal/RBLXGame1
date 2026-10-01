@@ -24,6 +24,8 @@ local MonetizationService = {}
 local rng = Random.new()
 local passByGamePassId: { [number]: string } = {}
 local productHandlers: { [number]: (player: Player) -> () } = {}
+-- Passes actually bought with Robux; code-granted perks never revoke these.
+local boughtPasses: { [Player]: { [string]: boolean } } = {}
 
 local function applySpeed(player: Player)
 	local character = player.Character
@@ -31,6 +33,11 @@ local function applySpeed(player: Player)
 	if humanoid and PlotService.HasPass(player, "SpeedBoost") and not player:GetAttribute("Carrying") then
 		humanoid.WalkSpeed = Config.SpeedBoostWalkSpeed
 	end
+end
+
+local function markPurchased(player: Player, key: string)
+	boughtPasses[player] = boughtPasses[player] or {}
+	boughtPasses[player][key] = true
 end
 
 local function grantPass(player: Player, key: string, announce: boolean)
@@ -53,6 +60,7 @@ function MonetizationService.LoadPasses(player: Player)
 				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, pass.Id)
 			end)
 			if ok and owns then
+				markPurchased(player, pass.Key)
 				grantPass(player, pass.Key, false)
 			end
 		end
@@ -102,16 +110,7 @@ local function registerProducts()
 			PlotService.Notify(player, "+" .. Format.Money(amount) .. "! Thanks for the support!", "cash")
 		end,
 		LuckyEgg = function(player)
-			local monsterId, mutation = rollLuckyMonster()
-			local label = (if mutation ~= "None" then mutation .. " " else "") .. Monsters.ById[monsterId].DisplayName
-			if PlotService.AddMonster(player, { Id = monsterId, Mutation = mutation }) then
-				PlotService.Notify(player, "🥚 Lucky Egg hatched a " .. label .. "!", "rare")
-			else
-				-- Base full: pay out the monster's value so the purchase is never wasted.
-				local value = MonsterModels.PriceOf(monsterId, mutation)
-				PlotService.AddCash(player, value)
-				PlotService.Notify(player, "Base full! Got " .. Format.Money(value) .. " for your " .. label .. " instead.", "cash")
-			end
+			MonetizationService.GiveLuckyEgg(player)
 		end,
 	}
 	for _, product in Monetization.Products do
@@ -152,7 +151,43 @@ local function processReceipt(receipt: any): Enum.ProductPurchaseDecision
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 
+-- Grants a pass perk without a Robux purchase (used by redeem codes).
+function MonetizationService.GrantPass(player: Player, key: string)
+	grantPass(player, key, false)
+end
+
+-- Removes a code-granted perk; never touches a pass the player bought.
+function MonetizationService.RevokePass(player: Player, key: string)
+	if (boughtPasses[player] and boughtPasses[player][key]) or not PlotService.HasPass(player, key) then
+		return
+	end
+	player:SetAttribute("Pass_" .. key, nil)
+	PlotService.Refresh(player)
+	local character = player.Character
+	local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+	if key == "SpeedBoost" and humanoid and not player:GetAttribute("Carrying") then
+		humanoid.WalkSpeed = 16
+	end
+end
+
+-- Hatches a random Epic+ monster into the player's base (or pays its value if full).
+function MonetizationService.GiveLuckyEgg(player: Player)
+	local monsterId, mutation = rollLuckyMonster()
+	local label = (if mutation ~= "None" then mutation .. " " else "") .. Monsters.ById[monsterId].DisplayName
+	if PlotService.AddMonster(player, { Id = monsterId, Mutation = mutation }) then
+		PlotService.Notify(player, "🥚 Lucky Egg hatched a " .. label .. "!", "rare")
+	else
+		-- Base full: pay out the monster's value so the reward is never wasted.
+		local value = MonsterModels.PriceOf(monsterId, mutation)
+		PlotService.AddCash(player, value)
+		PlotService.Notify(player, "Base full! Got " .. Format.Money(value) .. " for your " .. label .. " instead.", "cash")
+	end
+end
+
 function MonetizationService.Start()
+	Players.PlayerRemoving:Connect(function(player)
+		boughtPasses[player] = nil
+	end)
 	for _, pass in Monetization.GamePasses do
 		if pass.Id ~= 0 then
 			passByGamePassId[pass.Id] = pass.Key
@@ -163,6 +198,7 @@ function MonetizationService.Start()
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player, gamePassId, purchased)
 		local key = passByGamePassId[gamePassId]
 		if purchased and key then
+			markPurchased(player, key)
 			grantPass(player, key, true)
 		end
 	end)
