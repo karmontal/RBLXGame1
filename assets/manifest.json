@@ -133,6 +133,23 @@
         "job": "27bff590-4109-4c91-ae21-80724a90d628",
         "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_27bff590-4109-4c91-ae21-80724a90d628.png"
       }
+    },
+    "teasers": {
+      "seedance_2_5_vertical": {
+        "job": "796390a7-0cf2-441b-9f30-9c3c89cf87da",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_173213_796390a7-0cf2-441b-9f30-9c3c89cf87da.mp4",
+        "aspect": "9:16"
+      },
+      "seedance_2_0_mini_vertical": {
+        "job": "79233b47-f3c0-4022-9cbd-30994ab99441",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_172222_79233b47-f3c0-4022-9cbd-30994ab99441.mp4",
+        "aspect": "9:16"
+      },
+      "kling_3_0_landscape": {
+        "job": "d9e7bd18-cb7e-4c32-a0bd-017328d94d59",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165956_d9e7bd18-cb7e-4c32-a0bd-017328d94d59.mp4",
+        "aspect": "16:9"
+      }
     }
   }
 }

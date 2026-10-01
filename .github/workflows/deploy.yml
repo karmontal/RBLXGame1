@@ -41,13 +41,17 @@ jobs:
       - name: Upload new meshes to Roblox
         run: python3 scripts/upload_assets.py
 
-      - name: Commit updated asset ids
+      - name: Create missing Game Passes and Developer Products
+        run: python3 scripts/setup_store.py
+
+      - name: Commit updated asset and store ids
         run: |
-          if ! git diff --quiet -- assets/manifest.json src/shared/AssetIds.luau; then
+          files="assets/manifest.json src/shared/AssetIds.luau assets/store.json src/shared/Monetization.luau"
+          if ! git diff --quiet -- $files; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add assets/manifest.json src/shared/AssetIds.luau
-            git commit -m "chore: update Roblox asset ids [skip ci]"
+            git add $files
+            git commit -m "chore: update Roblox asset and store ids [skip ci]"
             git push
           fi
 

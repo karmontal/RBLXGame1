@@ -22,6 +22,10 @@ export type Profile = {
 	Slots: { [string]: OwnedMonster },
 	-- Recent Developer Product receipt ids, so a retried receipt is never granted twice.
 	Purchases: { string },
+	-- Redeem codes already used (upper-case).
+	RedeemedCodes: { string },
+	-- Pass perks granted by codes: key -> unix expiry (0 = permanent).
+	CodePasses: { [string]: number },
 }
 
 local SESSION_LOCK_TIMEOUT = 30 * 60
@@ -41,6 +45,8 @@ local function defaultProfile(): Profile
 		Rebirths = 0,
 		Slots = {},
 		Purchases = {},
+		RedeemedCodes = {},
+		CodePasses = {},
 	}
 end
 
@@ -54,6 +60,20 @@ local function reconcile(data: any): Profile
 		profile.Cash = tonumber(data.Cash) or profile.Cash
 		profile.PendingCash = tonumber(data.PendingCash) or 0
 		profile.Rebirths = tonumber(data.Rebirths) or 0
+		if type(data.RedeemedCodes) == "table" then
+			for _, code in data.RedeemedCodes do
+				if type(code) == "string" then
+					table.insert(profile.RedeemedCodes, code)
+				end
+			end
+		end
+		if type(data.CodePasses) == "table" then
+			for key, expiresAt in data.CodePasses do
+				if type(key) == "string" and tonumber(expiresAt) then
+					profile.CodePasses[key] = tonumber(expiresAt) :: number
+				end
+			end
+		end
 		if type(data.Purchases) == "table" then
 			for _, receiptId in data.Purchases do
 				if type(receiptId) == "string" then
@@ -82,6 +102,8 @@ local function serialize(profile: Profile, locked: boolean): any
 		Rebirths = profile.Rebirths,
 		Slots = profile.Slots,
 		Purchases = profile.Purchases,
+		RedeemedCodes = profile.RedeemedCodes,
+		CodePasses = profile.CodePasses,
 		SessionLock = if locked then { JobId = game.JobId, Time = os.time() } else nil,
 	}
 end

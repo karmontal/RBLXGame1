@@ -23,6 +23,7 @@ gui.IgnoreGuiInset = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 require(script.Shop).Mount(gui)
+require(script.Codes).Mount(gui)
 
 local panel = Instance.new("Frame")
 panel.AnchorPoint = Vector2.new(0, 1)
