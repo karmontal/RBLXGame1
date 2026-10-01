@@ -28,9 +28,42 @@ local ConveyorService = {}
 
 local rng = Random.new()
 local items: { BeltItem } = {}
-local beltStart: Vector3
-local beltEnd: Vector3
+local path: { Vector3 } = {}
+local cumulative: { number } = {} -- distance along the belt at each waypoint
+local totalLength = 0
 local folder: Folder
+
+local TURN_BLEND = 5 -- studs before a corner where monsters start turning
+
+-- Position and facing at a distance along the winding belt.
+local function frameAt(distance: number): CFrame
+	local segment = #path - 1
+	for i = 1, #path - 1 do
+		if distance <= cumulative[i + 1] then
+			segment = i
+			break
+		end
+	end
+	local a, b = path[segment], path[segment + 1]
+	local segmentLength = cumulative[segment + 1] - cumulative[segment]
+	local along = math.clamp(distance - cumulative[segment], 0, segmentLength)
+	local position = a:Lerp(b, if segmentLength > 0 then along / segmentLength else 0)
+	local direction = (b - a).Unit
+	local remaining = segmentLength - along
+	if remaining < TURN_BLEND and path[segment + 2] then
+		local nextDirection = (path[segment + 2] - b).Unit
+		local t = 1 - remaining / TURN_BLEND
+		direction = direction:Lerp(nextDirection, t * 0.5)
+	elseif along < TURN_BLEND and segment > 1 then
+		local previousDirection = (a - path[segment - 1]).Unit
+		local t = 1 - along / TURN_BLEND
+		direction = direction:Lerp(previousDirection, t * 0.5)
+	end
+	if direction.Magnitude < 1e-3 then
+		direction = (b - a).Unit
+	end
+	return CFrame.lookAt(position, position + direction)
+end
 
 local totalWeight = 0
 for _, rarity in Rarities.List do
@@ -110,7 +143,7 @@ local function spawnItem(forcedId: string?, forcedMutation: string?)
 		onBuy(item, player)
 	end)
 
-	model:PivotTo(CFrame.lookAt(beltStart, beltEnd))
+	model:PivotTo(frameAt(0))
 	model.Parent = folder
 	table.insert(items, item)
 
@@ -130,18 +163,20 @@ function ConveyorService.Spawn(monsterId: string, mutationName: string?)
 	spawnItem(monsterId, mutationName)
 end
 
-function ConveyorService.Init(startPos: Vector3, endPos: Vector3)
-	beltStart = startPos
-	beltEnd = endPos
+-- `beltPath` is the belt centerline at belt-top height, start to end.
+function ConveyorService.Init(beltPath: { Vector3 })
+	path = beltPath
+	cumulative = { 0 }
+	for i = 2, #path do
+		cumulative[i] = cumulative[i - 1] + (path[i] - path[i - 1]).Magnitude
+	end
+	totalLength = cumulative[#path]
 	folder = Instance.new("Folder")
 	folder.Name = "BeltMonsters"
 	folder.Parent = workspace
 end
 
 function ConveyorService.Start()
-	local length = (beltEnd - beltStart).Magnitude
-	local direction = (beltEnd - beltStart).Unit
-
 	task.spawn(function()
 		while true do
 			spawnItem()
@@ -153,11 +188,10 @@ function ConveyorService.Start()
 		for i = #items, 1, -1 do
 			local item = items[i]
 			item.Distance += Config.ConveyorSpeed * dt
-			if item.Distance >= length then
+			if item.Distance >= totalLength then
 				despawn(item)
 			else
-				local position = beltStart + direction * item.Distance
-				item.Model:PivotTo(CFrame.lookAt(position, position + direction))
+				item.Model:PivotTo(frameAt(item.Distance))
 			end
 		end
 	end)

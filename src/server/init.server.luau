@@ -31,12 +31,12 @@ setLanguage.Parent = remotes
 remotes.Parent = ReplicatedStorage
 
 local map = WorldBuilder.BuildGround()
-local beltStart, beltEnd = WorldBuilder.BuildConveyor(map)
+local beltPath = WorldBuilder.BuildConveyor(map)
 local plotParts = WorldBuilder.BuildPlots(map)
 
 DataService.Init()
 PlotService.Init(plotParts, notify)
-ConveyorService.Init(beltStart, beltEnd)
+ConveyorService.Init(beltPath)
 
 DataService.Start()
 PlotService.Start()
