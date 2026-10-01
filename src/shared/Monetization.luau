@@ -13,28 +13,28 @@ export type Item = {
 local GamePasses: { Item } = {
 	{
 		Key = "DoubleCash",
-		Id = 0,
+		Id = 2001675035,
 		Name = "2x Cash",
 		Description = "All your monsters earn double cash, forever.",
 		Price = 199,
 	},
 	{
 		Key = "SuperLock",
-		Id = 0,
+		Id = 2002316944,
 		Name = "Super Lock",
 		Description = "Base lock lasts 2 minutes with only a 15s cooldown.",
 		Price = 149,
 	},
 	{
 		Key = "SpeedBoost",
-		Id = 0,
+		Id = 2002022920,
 		Name = "Speed Boost",
 		Description = "Run faster, even while carrying a stolen monster.",
 		Price = 99,
 	},
 	{
 		Key = "AutoCollect",
-		Id = 0,
+		Id = 2002790772,
 		Name = "Auto Collect",
 		Description = "Income goes straight to your cash, no pad needed.",
 		Price = 79,
@@ -44,21 +44,21 @@ local GamePasses: { Item } = {
 local Products: { Item } = {
 	{
 		Key = "CashSmall",
-		Id = 0,
+		Id = 3715851480,
 		Name = "Bag of Cash",
 		Description = "5 minutes of income (at least $5K).",
 		Price = 25,
 	},
 	{
 		Key = "CashLarge",
-		Id = 0,
+		Id = 3715851487,
 		Name = "Chest of Cash",
 		Description = "1 hour of income (at least $100K).",
 		Price = 149,
 	},
 	{
 		Key = "LuckyEgg",
-		Id = 0,
+		Id = 3715851497,
 		Name = "Lucky Egg",
 		Description = "Hatch a random Epic or better monster into your base.",
 		Price = 99,
