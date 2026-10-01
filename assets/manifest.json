@@ -103,6 +103,36 @@
       "job": "9a6805e5-759f-499e-bafc-ca58c22cf30a",
       "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_163654_9a6805e5-759f-499e-bafc-ca58c22cf30a.png",
       "note": "Experience thumbnail (16:9). Upload in Creator Hub > Places > Thumbnails."
+    },
+    "shop_icons": {
+      "DoubleCash": {
+        "job": "5ec972b5-930b-4e9d-bad3-2abfd22502ef",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_5ec972b5-930b-4e9d-bad3-2abfd22502ef.png"
+      },
+      "SuperLock": {
+        "job": "c23b4834-581d-4395-af16-16e0caf1f3d5",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_c23b4834-581d-4395-af16-16e0caf1f3d5.png"
+      },
+      "SpeedBoost": {
+        "job": "280ad103-3410-408f-b14b-0779b8667db4",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_280ad103-3410-408f-b14b-0779b8667db4.png"
+      },
+      "AutoCollect": {
+        "job": "e946e08b-9ae9-471d-b5fc-33ae27135d34",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_e946e08b-9ae9-471d-b5fc-33ae27135d34.png"
+      },
+      "CashSmall": {
+        "job": "3a096dad-c9cb-48b3-b09b-0ca1bc97b6e1",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_3a096dad-c9cb-48b3-b09b-0ca1bc97b6e1.png"
+      },
+      "CashLarge": {
+        "job": "3463f7f5-0892-4ad6-b1cc-ac1933cdb02c",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_3463f7f5-0892-4ad6-b1cc-ac1933cdb02c.png"
+      },
+      "LuckyEgg": {
+        "job": "27bff590-4109-4c91-ae21-80724a90d628",
+        "url": "https://d8j0ntlcm91z4.cloudfront.net/user_2zPmXEx9JaamGUwb4ZkXMQA3WpR/hf_20261001_165225_27bff590-4109-4c91-ae21-80724a90d628.png"
+      }
     }
   }
 }

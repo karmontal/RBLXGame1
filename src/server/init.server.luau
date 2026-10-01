@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Services = script.Services
 local ConveyorService = require(Services.ConveyorService)
 local DataService = require(Services.DataService)
+local MonetizationService = require(Services.MonetizationService)
 local PlotService = require(Services.PlotService)
 local StealService = require(Services.StealService)
 local WorldBuilder = require(Services.WorldBuilder)
@@ -30,6 +31,7 @@ DataService.Start()
 PlotService.Start()
 ConveyorService.Start()
 StealService.Start()
+MonetizationService.Start()
 
 local function teleportHome(player: Player, character: Model)
 	local spawnCFrame = PlotService.SpawnCFrame(player)
@@ -50,6 +52,7 @@ local function onPlayerAdded(player: Player)
 		player:Kick("This server is full, please join another one.")
 		return
 	end
+	task.spawn(MonetizationService.LoadPasses, player)
 	player.CharacterAdded:Connect(function(character)
 		teleportHome(player, character)
 	end)
