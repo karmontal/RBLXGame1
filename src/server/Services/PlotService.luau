@@ -10,6 +10,7 @@ local Config = require(Shared.Config)
 local Format = require(Shared.Format)
 local DataService = require(script.Parent.DataService)
 local MonsterModels = require(script.Parent.MonsterModels)
+local Loc = require(script.Parent.Loc)
 local WorldBuilder = require(script.Parent.WorldBuilder)
 
 type OwnedMonster = DataService.OwnedMonster
@@ -60,8 +61,9 @@ local function billboardLabel(parent: BasePart, offset: Vector3, color: Color3):
 	return label
 end
 
-function PlotService.Notify(player: Player, text: string, kind: string?)
-	notifyRemote:FireClient(player, text, kind or "info")
+-- Sends a localized toast: the client renders Locale key + args in its language.
+function PlotService.Notify(player: Player, key: string, args: { [string]: any }?, kind: string?)
+	notifyRemote:FireClient(player, { k = key, a = args }, kind or "info")
 end
 
 -- Game pass ownership is mirrored onto the player as "Pass_<Key>" attributes
@@ -97,9 +99,10 @@ local function refreshStats(player: Player)
 	end
 	player:SetAttribute("Income", income * PlotService.IncomeMultiplier(player))
 	player:SetAttribute("Cash", profile.Cash)
+	player:SetAttribute("Rebirths", profile.Rebirths)
 	local plot = plotOf[player]
 	if plot then
-		plot.RebirthLabel.Text = "Rebirth: " .. Format.Money(PlotService.RebirthCost(profile.Rebirths))
+		Loc.Label(plot.RebirthLabel, "label.rebirthCost", { amount = Format.Money(PlotService.RebirthCost(profile.Rebirths)) })
 	end
 end
 
@@ -151,7 +154,7 @@ local function addSlotPrompts(plot: Plot, slotIndex: number, model: Model)
 
 	local sell = Instance.new("ProximityPrompt")
 	sell.Name = "SellPrompt"
-	sell.ActionText = "Sell " .. Format.Money(MonsterModels.PriceOf(data.Id, data.Mutation) * Config.SellRefund)
+	Loc.Prompt(sell, "prompt.sell", { amount = Format.Money(MonsterModels.PriceOf(data.Id, data.Mutation) * Config.SellRefund) })
 	sell.ObjectText = model.Name
 	sell.KeyboardKeyCode = Enum.KeyCode.F
 	sell.HoldDuration = 0.6
@@ -165,12 +168,12 @@ local function addSlotPrompts(plot: Plot, slotIndex: number, model: Model)
 		end
 		PlotService.RemoveMonster(plot, slotIndex)
 		PlotService.AddCash(player, MonsterModels.PriceOf(data.Id, data.Mutation) * Config.SellRefund)
-		PlotService.Notify(player, "Sold " .. data.Id, "info")
+		PlotService.Notify(player, "n.sold", { monster = "@monster:" .. data.Id .. ":" .. data.Mutation })
 	end)
 
 	local steal = Instance.new("ProximityPrompt")
 	steal.Name = "StealPrompt"
-	steal.ActionText = "Steal"
+	Loc.Prompt(steal, "prompt.steal")
 	steal.ObjectText = model.Name
 	steal.HoldDuration = Config.StealHoldDuration
 	steal.MaxActivationDistance = 8
@@ -288,7 +291,7 @@ function PlotService.Assign(player: Player): Plot?
 	assigned.Owner = player
 	assigned.LockedUntil = 0
 	assigned.LockReadyAt = 0
-	assigned.Parts.Sign.Text = player.DisplayName .. "'s Base"
+	Loc.Label(assigned.Parts.Sign, "label.base", { player = player.DisplayName })
 	setOwnerPrompts(assigned, player.UserId)
 	plotOf[player] = assigned
 	player:SetAttribute("PlotIndex", assigned.Parts.Index)
@@ -317,9 +320,9 @@ function PlotService.Unassign(player: Player)
 	plotOf[player] = nil
 	plot.Owner = nil
 	plot.LockedUntil = 0
-	plot.Parts.Sign.Text = "Empty Base"
-	plot.PendingLabel.Text = ""
-	plot.LockLabel.Text = ""
+	Loc.Label(plot.Parts.Sign, "label.emptyBase")
+	Loc.Clear(plot.PendingLabel)
+	Loc.Clear(plot.LockLabel)
 	plot.Parts.Barrier.Transparency = 1
 	setOwnerPrompts(plot, 0)
 	for index, slot in plot.Slots do
@@ -369,7 +372,7 @@ local function onCollect(plot: Plot, hit: BasePart)
 	local amount = profile.PendingCash
 	profile.PendingCash = 0
 	PlotService.AddCash(player, amount)
-	PlotService.Notify(player, "+" .. Format.Money(amount), "cash")
+	PlotService.Notify(player, "n.collected", { amount = Format.Money(amount) }, "cash")
 end
 
 local function onLock(plot: Plot, player: Player)
@@ -378,13 +381,13 @@ local function onLock(plot: Plot, player: Player)
 	end
 	local now = os.clock()
 	if now < plot.LockReadyAt then
-		PlotService.Notify(player, string.format("Lock ready in %ds", math.ceil(plot.LockReadyAt - now)), "error")
+		PlotService.Notify(player, "n.lockWait", { seconds = math.ceil(plot.LockReadyAt - now) }, "error")
 		return
 	end
 	local superLock = PlotService.HasPass(player, "SuperLock")
 	plot.LockedUntil = now + (if superLock then Config.SuperLockDuration else Config.LockDuration)
 	plot.LockReadyAt = plot.LockedUntil + (if superLock then Config.SuperLockCooldown else Config.LockCooldown)
-	PlotService.Notify(player, "Base locked!", "info")
+	PlotService.Notify(player, "n.locked")
 end
 
 local function onRebirth(plot: Plot, player: Player)
@@ -394,12 +397,12 @@ local function onRebirth(plot: Plot, player: Player)
 	end
 	local cost = PlotService.RebirthCost(profile.Rebirths)
 	if profile.Cash < cost then
-		PlotService.Notify(player, "Rebirth needs " .. Format.Money(cost), "error")
+		PlotService.Notify(player, "n.rebirthNeed", { amount = Format.Money(cost) }, "error")
 		return
 	end
 	for _, slot in plot.Slots do
 		if slot.Stolen then
-			PlotService.Notify(player, "Can't rebirth while a monster is being stolen!", "error")
+			PlotService.Notify(player, "n.rebirthStealing", nil, "error")
 			return
 		end
 	end
@@ -412,7 +415,7 @@ local function onRebirth(plot: Plot, player: Player)
 		renderSlot(plot, index)
 	end
 	refreshStats(player)
-	PlotService.Notify(player, string.format("REBIRTH! Income x%.1f", PlotService.IncomeMultiplier(player)), "cash")
+	PlotService.Notify(player, "n.rebirthDone", { mult = string.format("%.1f", PlotService.IncomeMultiplier(player)) }, "cash")
 end
 
 -- Pushes non-owners out of locked bases.
@@ -421,11 +424,11 @@ local function enforceLock(plot: Plot)
 	plot.Parts.Barrier.Transparency = if locked then 0.35 else 1
 	local now = os.clock()
 	if locked then
-		plot.LockLabel.Text = string.format("🔒 %ds", math.ceil(plot.LockedUntil - now))
+		Loc.Label(plot.LockLabel, "label.lockActive", { seconds = math.ceil(plot.LockedUntil - now) })
 	elseif now < plot.LockReadyAt then
-		plot.LockLabel.Text = string.format("Ready in %ds", math.ceil(plot.LockReadyAt - now))
+		Loc.Label(plot.LockLabel, "label.lockReady", { seconds = math.ceil(plot.LockReadyAt - now) })
 	else
-		plot.LockLabel.Text = "🔓 Lock"
+		Loc.Label(plot.LockLabel, "label.lockIdle")
 	end
 	if not locked then
 		return
@@ -488,9 +491,9 @@ function PlotService.Start()
 					if PlotService.HasPass(player, "AutoCollect") then
 						PlotService.AddCash(player, profile.PendingCash)
 						profile.PendingCash = 0
-						plot.PendingLabel.Text = "Auto Collect ✓"
+						Loc.Label(plot.PendingLabel, "label.autoCollect")
 					else
-						plot.PendingLabel.Text = "Collect " .. Format.Money(profile.PendingCash)
+						Loc.Label(plot.PendingLabel, "label.collect", { amount = Format.Money(profile.PendingCash) })
 					end
 				end
 			end

@@ -12,6 +12,7 @@ local Monsters = require(Shared.Monsters)
 local Mutations = require(Shared.Mutations)
 local Rarities = require(Shared.Rarities)
 local MonsterModels = require(script.Parent.MonsterModels)
+local Loc = require(script.Parent.Loc)
 local PlotService = require(script.Parent.PlotService)
 
 type BeltItem = {
@@ -70,17 +71,16 @@ local function onBuy(item: BeltItem, player: Player)
 	end
 	local plot = PlotService.GetPlot(player)
 	if not plot or not PlotService.FreeSlot(plot) then
-		PlotService.Notify(player, "Your base is full! Sell a monster first.", "error")
+		PlotService.Notify(player, "n.baseFullSell", nil, "error")
 		return
 	end
 	if not PlotService.TrySpend(player, item.Price) then
-		PlotService.Notify(player, "Not enough cash! Need " .. Format.Money(item.Price), "error")
+		PlotService.Notify(player, "n.notEnough", { amount = Format.Money(item.Price) }, "error")
 		return
 	end
 	item.Sold = true
 	PlotService.AddMonster(player, { Id = item.MonsterId, Mutation = item.Mutation })
-	local mutation = if item.Mutation ~= "None" then item.Mutation .. " " else ""
-	PlotService.Notify(player, "You bought " .. mutation .. item.MonsterId .. "!", "cash")
+	PlotService.Notify(player, "n.bought", { monster = "@monster:" .. item.MonsterId .. ":" .. item.Mutation }, "cash")
 	despawn(item)
 end
 
@@ -101,7 +101,7 @@ local function spawnItem(forcedId: string?, forcedMutation: string?)
 
 	local prompt = Instance.new("ProximityPrompt")
 	prompt.Name = "BuyPrompt"
-	prompt.ActionText = "Buy " .. Format.Money(price)
+	Loc.Prompt(prompt, "prompt.buy", { amount = Format.Money(price) })
 	prompt.ObjectText = model.Name
 	prompt.MaxActivationDistance = Config.BuyDistance - 2
 	prompt.RequiresLineOfSight = false
@@ -117,7 +117,10 @@ local function spawnItem(forcedId: string?, forcedMutation: string?)
 	local rarity = Rarities.ByName[Monsters.ById[monsterId].Rarity]
 	if rarity.Order >= 5 or mutation.Multiplier >= 4 then
 		for _, player in Players:GetPlayers() do
-			PlotService.Notify(player, "A " .. rarity.Name .. " " .. monsterId .. " appeared on the belt!", "rare")
+			PlotService.Notify(player, "n.beltRare", {
+				rarity = "@rarity." .. rarity.Name,
+				monster = "@monster:" .. monsterId .. ":" .. mutation.Name,
+			}, "rare")
 		end
 	end
 end

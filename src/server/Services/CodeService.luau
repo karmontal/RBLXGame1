@@ -23,10 +23,16 @@ local counterStore: DataStore? = nil
 local busy: { [Player]: boolean } = {}
 local lastAttempt: { [Player]: number } = {}
 
+type Msg = { k: string, a: { [string]: any }? }
+
+local function msg(key: string, args: { [string]: any }?): Msg
+	return { k = key, a = args }
+end
+
 -- Atomically takes one of a limited code's redemptions. Returns ok, message.
-local function claimGlobalSlot(code: string, maxRedemptions: number): (boolean, string?)
+local function claimGlobalSlot(code: string, maxRedemptions: number): (boolean, Msg?)
 	if not counterStore then
-		return false, "Codes are unavailable right now, try again later."
+		return false, msg("code.unavailable")
 	end
 	local claimed = false
 	local ok = pcall(function()
@@ -40,10 +46,10 @@ local function claimGlobalSlot(code: string, maxRedemptions: number): (boolean, 
 		end)
 	end)
 	if not ok then
-		return false, "Codes are unavailable right now, try again later."
+		return false, msg("code.unavailable")
 	end
 	if not claimed then
-		return false, "This code has been fully claimed!"
+		return false, msg("code.claimed")
 	end
 	return true, nil
 end
@@ -60,49 +66,53 @@ local function applyPassReward(player: Player, key: string, hours: number?)
 	MonetizationService.GrantPass(player, key)
 end
 
-local function describe(reward: Codes.Code): string
+-- A list of messages the client joins with " + ".
+local function describe(reward: Codes.Code): { Msg }
 	local parts = {}
 	if reward.Cash then
-		table.insert(parts, Format.Money(reward.Cash))
+		table.insert(parts, msg("money", { amount = Format.Money(reward.Cash) }))
 	end
 	if reward.LuckyEggs then
-		table.insert(parts, reward.LuckyEggs .. "x Lucky Egg")
+		table.insert(parts, msg("reward.eggs", { count = reward.LuckyEggs }))
 	end
 	if reward.Pass then
-		local item = Monetization.ByKey[reward.Pass]
-		local name = if item then item.Name else reward.Pass
-		table.insert(parts, name .. (if reward.PassHours then " (" .. reward.PassHours .. "h)" else ""))
+		local pass = "@item." .. reward.Pass .. ".name"
+		if reward.PassHours then
+			table.insert(parts, msg("reward.passHours", { pass = pass, hours = reward.PassHours }))
+		else
+			table.insert(parts, msg("raw", { text = pass }))
+		end
 	end
-	return table.concat(parts, " + ")
+	return parts
 end
 
-local function redeem(player: Player, rawCode: unknown): (boolean, string)
+local function redeem(player: Player, rawCode: unknown): (boolean, Msg)
 	if type(rawCode) ~= "string" or #rawCode == 0 or #rawCode > MAX_CODE_LENGTH then
-		return false, "Enter a code."
+		return false, msg("code.enter")
 	end
 	local code = string.upper((rawCode:gsub("%s", "")))
 	local reward = Codes[code]
 	if not reward then
-		return false, "Invalid code."
+		return false, msg("code.invalid")
 	end
 	local profile = DataService.Get(player)
 	if not profile or not PlotService.GetPlot(player) then
-		return false, "Still loading, try again in a moment."
+		return false, msg("code.loading")
 	end
 	if table.find(profile.RedeemedCodes, code) then
-		return false, "You already used this code."
+		return false, msg("code.used")
 	end
 	if reward.Expires and os.time() > reward.Expires then
-		return false, "This code has expired."
+		return false, msg("code.expired")
 	end
 	if reward.Pass and not Monetization.ByKey[reward.Pass] then
 		warn("[CodeService] Code", code, "references unknown pass", reward.Pass)
-		return false, "Invalid code."
+		return false, msg("code.invalid")
 	end
 	if reward.MaxRedemptions then
 		local ok, message = claimGlobalSlot(code, reward.MaxRedemptions)
 		if not ok then
-			return false, message :: string
+			return false, message :: Msg
 		end
 	end
 
@@ -118,7 +128,7 @@ local function redeem(player: Player, rawCode: unknown): (boolean, string)
 		MonetizationService.GiveLuckyEgg(player)
 	end
 	task.spawn(DataService.Save, player, false)
-	return true, "Code redeemed: " .. describe(reward) .. "!"
+	return true, msg("code.redeemed", { rewards = describe(reward) })
 end
 
 -- Re-applies code-granted perks that are still active (call after passes load).
@@ -145,10 +155,10 @@ function CodeService.Start(remote: RemoteFunction)
 		counterStore = result
 	end
 
-	remote.OnServerInvoke = function(player: Player, rawCode: unknown): (boolean, string)
+	remote.OnServerInvoke = function(player: Player, rawCode: unknown): (boolean, Msg)
 		local now = os.clock()
 		if busy[player] or now - (lastAttempt[player] or 0) < COOLDOWN then
-			return false, "Slow down a little!"
+			return false, msg("code.slow")
 		end
 		busy[player] = true
 		lastAttempt[player] = now
@@ -156,12 +166,13 @@ function CodeService.Start(remote: RemoteFunction)
 		busy[player] = nil
 		if not success then
 			warn("[CodeService] Redeem failed:", okOrError)
-			return false, "Something went wrong, try again."
+			return false, msg("code.error")
 		end
+		local reply = message :: Msg
 		if okOrError then
-			PlotService.Notify(player, message :: string, "rare")
+			PlotService.Notify(player, reply.k, reply.a, "rare")
 		end
-		return okOrError :: boolean, message :: string
+		return okOrError :: boolean, reply
 	end
 
 	-- Expire timed perks while players are online.
@@ -176,7 +187,7 @@ function CodeService.Start(remote: RemoteFunction)
 						if expiresAt ~= 0 and expiresAt <= now then
 							profile.CodePasses[key] = nil
 							MonetizationService.RevokePass(player, key)
-							PlotService.Notify(player, (Monetization.ByKey[key] and Monetization.ByKey[key].Name or key) .. " has ended. Get it forever in the Shop!", "info")
+							PlotService.Notify(player, "n.perkEnded", { pass = "@item." .. key .. ".name" })
 						end
 					end
 				end

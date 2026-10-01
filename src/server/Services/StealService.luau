@@ -37,7 +37,7 @@ local function rootOf(player: Player): BasePart?
 	return character and character:FindFirstChild("HumanoidRootPart") :: BasePart?
 end
 
-local function endCarry(carry: Carry, success: boolean, reason: string?)
+local function endCarry(carry: Carry, success: boolean, reason: { k: string, a: { [string]: any }? }?)
 	if carries[carry.Thief] ~= carry then
 		return
 	end
@@ -64,22 +64,23 @@ local function endCarry(carry: Carry, success: boolean, reason: string?)
 	if success then
 		local data = PlotService.RemoveMonster(carry.Plot, carry.SlotIndex)
 		if data and PlotService.AddMonster(carry.Thief, data) then
-			PlotService.Notify(carry.Thief, "You stole " .. carry.MonsterId .. "!", "cash")
-			PlotService.Notify(carry.Victim, carry.Thief.DisplayName .. " stole your " .. carry.MonsterId .. "!", "error")
+			local monster = "@monster:" .. carry.MonsterId .. ":" .. carry.Mutation
+			PlotService.Notify(carry.Thief, "n.stole", { monster = monster }, "cash")
+			PlotService.Notify(carry.Victim, "n.stolenFrom", { player = carry.Thief.DisplayName, monster = monster }, "error")
 			return
 		end
 		-- Thief's base filled up in the meantime: give it back.
 		if data then
 			PlotService.AddMonster(carry.Victim, data)
 		end
-		PlotService.Notify(carry.Thief, "Your base is full!", "error")
+		PlotService.Notify(carry.Thief, "n.baseFull", nil, "error")
 		return
 	end
 
 	PlotService.SetStolen(carry.Plot, carry.SlotIndex, false)
 	if reason then
-		PlotService.Notify(carry.Thief, reason, "error")
-		PlotService.Notify(carry.Victim, "You got your " .. carry.MonsterId .. " back!", "info")
+		PlotService.Notify(carry.Thief, reason.k, reason.a, "error")
+		PlotService.Notify(carry.Victim, "n.recovered", { monster = "@monster:" .. carry.MonsterId .. ":" .. carry.Mutation })
 	end
 end
 
@@ -94,7 +95,7 @@ local function tryStart(thief: Player, plot: Plot, slotIndex: number)
 	end
 	local thiefPlot = PlotService.GetPlot(thief)
 	if not thiefPlot or not PlotService.FreeSlot(thiefPlot) then
-		PlotService.Notify(thief, "Your base is full!", "error")
+		PlotService.Notify(thief, "n.baseFull", nil, "error")
 		return
 	end
 	local root = rootOf(thief)
@@ -133,11 +134,14 @@ local function tryStart(thief: Player, plot: Plot, slotIndex: number)
 	humanoid.WalkSpeed = Config.CarryWalkSpeed
 		+ (if PlotService.HasPass(thief, "SpeedBoost") then Config.SpeedBoostCarryBonus else 0)
 	thief:SetAttribute("Carrying", data.Id)
-	PlotService.Notify(thief, "Run back to your base!", "info")
-	PlotService.Notify(victim, thief.DisplayName .. " is stealing your " .. data.Id .. "! Catch them!", "error")
+	PlotService.Notify(thief, "n.runHome")
+	PlotService.Notify(victim, "n.beingStolen", {
+		player = thief.DisplayName,
+		monster = "@monster:" .. data.Id .. ":" .. data.Mutation,
+	}, "error")
 
 	humanoid.Died:Once(function()
-		endCarry(carry, false, "You dropped it!")
+		endCarry(carry, false, { k = "n.dropped" })
 	end)
 end
 
@@ -159,7 +163,7 @@ function StealService.Start()
 			for _, carry in carries do
 				local thiefRoot = rootOf(carry.Thief)
 				if not thiefRoot or not carry.Model.Parent then
-					endCarry(carry, false, "You dropped it!")
+					endCarry(carry, false, { k = "n.dropped" })
 					continue
 				end
 				local thiefPlot = PlotService.GetPlot(carry.Thief)
@@ -168,12 +172,12 @@ function StealService.Start()
 					continue
 				end
 				if os.clock() - carry.StartedAt > Config.CarryTimeout then
-					endCarry(carry, false, "Too slow! It ran home.")
+					endCarry(carry, false, { k = "n.tooSlow" })
 					continue
 				end
 				local victimRoot = rootOf(carry.Victim)
 				if victimRoot and (victimRoot.Position - thiefRoot.Position).Magnitude <= Config.CatchDistance then
-					endCarry(carry, false, "Caught by " .. carry.Victim.DisplayName .. "!")
+					endCarry(carry, false, { k = "n.caught", a = { player = carry.Victim.DisplayName } })
 				end
 			end
 		end
