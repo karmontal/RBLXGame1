@@ -6,6 +6,7 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = require(ReplicatedStorage.Shared.Config)
+local Loc = require(script.Parent.Loc)
 
 export type PlotParts = {
 	Index: number,
@@ -38,7 +39,7 @@ local function part(props: { [string]: any }): Part
 	return p
 end
 
-local function sign(parent: BasePart, text: string, size: UDim2, offset: Vector3): TextLabel
+local function sign(parent: BasePart, textKey: string, size: UDim2, offset: Vector3): TextLabel
 	local gui = Instance.new("BillboardGui")
 	gui.Size = size
 	gui.StudsOffsetWorldSpace = offset
@@ -52,15 +53,14 @@ local function sign(parent: BasePart, text: string, size: UDim2, offset: Vector3
 	label.TextScaled = true
 	label.TextColor3 = Color3.new(1, 1, 1)
 	label.TextStrokeTransparency = 0.1
-	label.Text = text
+	Loc.Label(label, textKey)
 	label.Parent = gui
 	return label
 end
 
-local function prompt(parent: BasePart, action: string, objectText: string, holdDuration: number?): ProximityPrompt
+local function prompt(parent: BasePart, actionKey: string, holdDuration: number?): ProximityPrompt
 	local p = Instance.new("ProximityPrompt")
-	p.ActionText = action
-	p.ObjectText = objectText
+	Loc.Prompt(p, actionKey)
 	p.HoldDuration = holdDuration or 0
 	p.MaxActivationDistance = 10
 	p.RequiresLineOfSight = false
@@ -125,7 +125,7 @@ function WorldBuilder.BuildConveyor(map: Folder): (Vector3, Vector3)
 		Material = Enum.Material.SmoothPlastic,
 		Parent = map,
 	})
-	sign(spawner, "🥚 MONSTER MACHINE", UDim2.fromOffset(320, 60), Vector3.new(0, 10, 0))
+	sign(spawner, "label.machine", UDim2.fromOffset(320, 60), Vector3.new(0, 10, 0))
 	part({
 		Name = "Exit",
 		Size = Vector3.new(8, 14, 14),
@@ -223,7 +223,7 @@ local function buildPlot(map: Folder, index: number, center: Vector3): PlotParts
 		Material = Enum.Material.Neon,
 		Parent = model,
 	})
-	prompt(lockButton, "Lock Base", "Lock")
+	prompt(lockButton, "prompt.lock")
 
 	local rebirthPillar = part({
 		Name = "RebirthPillar",
@@ -233,7 +233,7 @@ local function buildPlot(map: Folder, index: number, center: Vector3): PlotParts
 		Material = Enum.Material.Neon,
 		Parent = model,
 	})
-	prompt(rebirthPillar, "Rebirth", "Rebirth", 1)
+	prompt(rebirthPillar, "prompt.rebirth", 1)
 
 	local signPost = part({
 		Name = "SignPost",
@@ -243,7 +243,7 @@ local function buildPlot(map: Folder, index: number, center: Vector3): PlotParts
 		CanCollide = false,
 		Parent = model,
 	})
-	local signLabel = sign(signPost, "Empty Base", UDim2.fromOffset(300, 60), Vector3.new(0, 4, 0))
+	local signLabel = sign(signPost, "label.emptyBase", UDim2.fromOffset(300, 60), Vector3.new(0, 4, 0))
 
 	return {
 		Index = index,

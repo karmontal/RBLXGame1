@@ -25,6 +25,9 @@ redeemCode.Parent = remotes
 local adminCommand = Instance.new("RemoteFunction")
 adminCommand.Name = "AdminCommand"
 adminCommand.Parent = remotes
+local setLanguage = Instance.new("RemoteEvent")
+setLanguage.Name = "SetLanguage"
+setLanguage.Parent = remotes
 remotes.Parent = ReplicatedStorage
 
 local map = WorldBuilder.BuildGround()
@@ -58,6 +61,9 @@ local function onPlayerAdded(player: Player)
 	if not profile or not player.Parent then
 		return
 	end
+	if profile.Language ~= "" then
+		player:SetAttribute("Lang", profile.Language)
+	end
 	if not PlotService.Assign(player) then
 		player:Kick("This server is full, please join another one.")
 		return
@@ -74,6 +80,14 @@ local function onPlayerAdded(player: Player)
 		teleportHome(player, player.Character)
 	end
 end
+
+setLanguage.OnServerEvent:Connect(function(player, lang)
+	local profile = DataService.Get(player)
+	if profile and (lang == "en" or lang == "ar") then
+		profile.Language = lang
+		player:SetAttribute("Lang", lang)
+	end
+end)
 
 Players.PlayerAdded:Connect(onPlayerAdded)
 for _, player in Players:GetPlayers() do

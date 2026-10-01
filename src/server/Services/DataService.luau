@@ -26,6 +26,8 @@ export type Profile = {
 	RedeemedCodes: { string },
 	-- Pass perks granted by codes: key -> unix expiry (0 = permanent).
 	CodePasses: { [string]: number },
+	-- UI language chosen by the player ("en"/"ar"); "" = auto-detect.
+	Language: string,
 }
 
 local SESSION_LOCK_TIMEOUT = 30 * 60
@@ -47,6 +49,7 @@ local function defaultProfile(): Profile
 		Purchases = {},
 		RedeemedCodes = {},
 		CodePasses = {},
+		Language = "",
 	}
 end
 
@@ -60,6 +63,9 @@ local function reconcile(data: any): Profile
 		profile.Cash = tonumber(data.Cash) or profile.Cash
 		profile.PendingCash = tonumber(data.PendingCash) or 0
 		profile.Rebirths = tonumber(data.Rebirths) or 0
+		if data.Language == "en" or data.Language == "ar" then
+			profile.Language = data.Language
+		end
 		if type(data.RedeemedCodes) == "table" then
 			for _, code in data.RedeemedCodes do
 				if type(code) == "string" then
@@ -104,6 +110,7 @@ local function serialize(profile: Profile, locked: boolean): any
 		Purchases = profile.Purchases,
 		RedeemedCodes = profile.RedeemedCodes,
 		CodePasses = profile.CodePasses,
+		Language = profile.Language,
 		SessionLock = if locked then { JobId = game.JobId, Time = os.time() } else nil,
 	}
 end

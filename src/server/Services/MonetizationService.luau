@@ -48,7 +48,7 @@ local function grantPass(player: Player, key: string, announce: boolean)
 	PlotService.Refresh(player)
 	applySpeed(player)
 	if announce then
-		PlotService.Notify(player, "Thanks! " .. Monetization.ByKey[key].Name .. " unlocked!", "rare")
+		PlotService.Notify(player, "n.passUnlocked", { pass = "@item." .. key .. ".name" }, "rare")
 	end
 end
 
@@ -102,12 +102,12 @@ local function registerProducts()
 		CashSmall = function(player)
 			local amount = math.max(Config.CashSmallMinimum, incomePerSecond(player) * Config.CashSmallSeconds)
 			PlotService.AddCash(player, amount)
-			PlotService.Notify(player, "+" .. Format.Money(amount) .. "! Thanks for the support!", "cash")
+			PlotService.Notify(player, "n.cashThanks", { amount = Format.Money(amount) }, "cash")
 		end,
 		CashLarge = function(player)
 			local amount = math.max(Config.CashLargeMinimum, incomePerSecond(player) * Config.CashLargeSeconds)
 			PlotService.AddCash(player, amount)
-			PlotService.Notify(player, "+" .. Format.Money(amount) .. "! Thanks for the support!", "cash")
+			PlotService.Notify(player, "n.cashThanks", { amount = Format.Money(amount) }, "cash")
 		end,
 		LuckyEgg = function(player)
 			MonetizationService.GiveLuckyEgg(player)
@@ -173,14 +173,14 @@ end
 -- Hatches a random Epic+ monster into the player's base (or pays its value if full).
 function MonetizationService.GiveLuckyEgg(player: Player)
 	local monsterId, mutation = rollLuckyMonster()
-	local label = (if mutation ~= "None" then mutation .. " " else "") .. Monsters.ById[monsterId].DisplayName
+	local label = "@monster:" .. monsterId .. ":" .. mutation
 	if PlotService.AddMonster(player, { Id = monsterId, Mutation = mutation }) then
-		PlotService.Notify(player, "🥚 Lucky Egg hatched a " .. label .. "!", "rare")
+		PlotService.Notify(player, "n.eggHatched", { monster = label }, "rare")
 	else
 		-- Base full: pay out the monster's value so the reward is never wasted.
 		local value = MonsterModels.PriceOf(monsterId, mutation)
 		PlotService.AddCash(player, value)
-		PlotService.Notify(player, "Base full! Got " .. Format.Money(value) .. " for your " .. label .. " instead.", "cash")
+		PlotService.Notify(player, "n.eggFull", { amount = Format.Money(value), monster = label }, "cash")
 	end
 end
 

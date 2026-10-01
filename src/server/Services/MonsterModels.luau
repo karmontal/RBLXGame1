@@ -12,6 +12,7 @@ local Format = require(Shared.Format)
 local Monsters = require(Shared.Monsters)
 local Mutations = require(Shared.Mutations)
 local Rarities = require(Shared.Rarities)
+local Loc = require(script.Parent.Loc)
 
 local MonsterModels = {}
 
@@ -202,17 +203,16 @@ function MonsterModels.Build(monsterId: string, mutationName: string, options: B
 	applyMutation(model, root, mutation.Name)
 
 	local title, rarityLabel, stats = makeBillboard(root, height)
-	local prefix = if mutation.Name ~= "None" then mutation.Name .. " " else ""
-	title.Text = prefix .. monster.DisplayName
+	Loc.Label(title, "raw", { text = "@monster:" .. monster.Id .. ":" .. mutation.Name })
 	title.TextColor3 = mutation.Color or Color3.new(1, 1, 1)
-	rarityLabel.Text = monster.Rarity
+	Loc.Label(rarityLabel, "raw", { text = "@rarity." .. monster.Rarity })
 	rarityLabel.TextColor3 = rarity.Color
 	local income = monster.Income * mutation.Multiplier * ((options and options.IncomeMultiplier) or 1)
-	local statsText = Format.Money(income) .. "/s"
 	if options and options.Price then
-		statsText = Format.Money(options.Price) .. "  •  " .. statsText
+		Loc.Label(stats, "label.priceIncome", { price = Format.Money(options.Price), income = Format.Money(income) })
+	else
+		Loc.Label(stats, "label.income", { income = Format.Money(income) })
 	end
-	stats.Text = statsText
 	stats.TextColor3 = Color3.fromRGB(120, 255, 120)
 
 	model:SetAttribute("MonsterId", monster.Id)
