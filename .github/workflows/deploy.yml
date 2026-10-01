@@ -1,0 +1,70 @@
+name: Deploy to Roblox
+
+# Uploads new Higgsfield meshes, builds the place with Rojo and publishes it
+# through Roblox Open Cloud on every push to main (or manually).
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-roblox
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
+      ROBLOX_UNIVERSE_ID: ${{ secrets.ROBLOX_UNIVERSE_ID }}
+      ROBLOX_PLACE_ID: ${{ secrets.ROBLOX_PLACE_ID }}
+      ROBLOX_CREATOR_ID: ${{ secrets.ROBLOX_CREATOR_ID }}
+      ROBLOX_CREATOR_TYPE: ${{ secrets.ROBLOX_CREATOR_TYPE }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets
+        run: |
+          missing=""
+          for name in ROBLOX_API_KEY ROBLOX_UNIVERSE_ID ROBLOX_PLACE_ID ROBLOX_CREATOR_ID; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing (Settings > Secrets and variables > Actions)"
+            exit 1
+          fi
+
+      - name: Upload new meshes to Roblox
+        run: python3 scripts/upload_assets.py
+
+      - name: Commit updated asset ids
+        run: |
+          if ! git diff --quiet -- assets/manifest.json src/shared/AssetIds.luau; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add assets/manifest.json src/shared/AssetIds.luau
+            git commit -m "chore: update Roblox asset ids [skip ci]"
+            git push
+          fi
+
+      - name: Install Rojo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ./scripts/install_tools.sh
+
+      - name: Build place
+        run: bin/rojo build -o place.rbxl
+
+      - name: Publish to Roblox
+        run: |
+          curl --fail-with-body -sS -X POST \
+            "https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_PLACE_ID}/versions?versionType=Published" \
+            -H "x-api-key: ${ROBLOX_API_KEY}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @place.rbxl
+          echo
+          echo "Published place ${ROBLOX_PLACE_ID} (universe ${ROBLOX_UNIVERSE_ID})."
